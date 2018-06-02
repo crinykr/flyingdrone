@@ -103,9 +103,7 @@
 #define FAILSAFE_THROTTLE  (MINTHROTTLE + 200)    // (*) Throttle level used for landing - may be relative to MINTHROTTLE - as in this case
 #define FAILSAFE_DETECT_TRESHOLD  985
 
-/**************************************************************************************/
 /***********************                  GPS                **************************/
-/**************************************************************************************/
 #define GPS_BAUD   57600       // GPS_BAUD will override SERIALx_COM_SPEED for the selected port
 #define GPS_LED_INDICATOR
 #define NAV_CONTROLS_HEADING       1    //(**)
@@ -137,9 +135,7 @@
 #define LCD_MENU_SAVE_EXIT 's'
 #define LCD_MENU_ABORT 'x'
 
-/********************************************************************/
 /****           battery voltage monitoring                       ****/
-/********************************************************************/
 #define VBATSCALE       131 // (*) (**) change this value if readed Battery voltage is different than real voltage
 #define VBATNOMINAL     126 // 12,6V full battery nominal voltage - only used for lcd.telemetry
 #define VBATLEVEL_WARN1 107 // (*) (**) 10,7V
@@ -153,38 +149,26 @@
 #define VBAT_CELLS_OFFSETS {0, 50, 83, 121, 149, 177 } // in 0.1 volts, gets added to voltage value  - useful for zener diodes
 #define VBAT_CELLS_DIVS { 75, 122,  98, 18, 30, 37 } // divisor for proportional part according to resistors - larger value here gives smaller voltage
 
-/********************************************************************/
 /****           powermeter (battery capacity monitoring)         ****/
-/********************************************************************/
 #define PSENSORNULL 510 /* (*) hard only: set to analogRead() value for zero current; for I=0A my sensor
                                    gives 1/2 Vss; that is approx 2.49Volt; */
 #define PINT2mA 132     /* (*) hard: one integer step on arduino analog translates to mA (example 4.9 / 37 * 1000) ;
                                    soft: use fictional value, start with 100.
                                    for hard and soft: larger PINT2mA will get you larger value for power (mAh equivalent) */
 
-/********************************************************************/
 /****           altitude hold                                    ****/
-/********************************************************************/
 /* defines the neutral zone of throttle stick during altitude hold, default setting is
  +/-50 uncommend and change the value below if you want to change it. */
 #define ALT_HOLD_THROTTLE_NEUTRAL_ZONE    50
 
-/********************************************************************/
 /****           board naming                                     ****/
-/********************************************************************/
 #define BOARD_NAME "MultiWii   V-.--"
 #define NO_FLASH_CHECK
 
-/*************************************************************************************************/
-/*****************                                                                 ***************/
-/****************  SECTION  7 - TUNING & DEVELOPER                                  **************/
-/*****************                                                                 ***************/
-/*************************************************************************************************/
+/****************  TUNING & DEVELOPER                                  **************/
 #define VBAT_PRESCALER 16 // set this to 8 if vbatscale would exceed 255
 
-/**************************************************************************************/
 /***********************     motor, servo and other presets     ***********************/
-/**************************************************************************************/
 #define MIDRC 1500
 
 /***********************         Servo Refreshrates            ***********************/
@@ -192,9 +176,7 @@
 #define MEGA_HW_PWM_SERVOS
 #define SERVO_RFR_RATE  50    // In Hz, you can set it from 20 to 400Hz, used only in HW PWM mode for mega and 32u4
 
-/********************************************************************/
 /****           ESCs calibration                                 ****/
-/********************************************************************/
 #define ESC_CALIB_LOW  MINCOMMAND
 #define ESC_CALIB_HIGH 2000
 //#define ESC_CALIB_CANNOT_FLY  // uncomment to activate
