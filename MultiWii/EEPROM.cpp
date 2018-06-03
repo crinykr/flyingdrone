@@ -20,7 +20,6 @@ uint8_t calculate_sum(uint8_t *cb, uint8_t siz)
 void readGlobalSet()
 {
 	eeprom_read_block((void*) &global_conf, (void*) 0, sizeof(global_conf));
-
 	if (calculate_sum((uint8_t*) &global_conf, sizeof(global_conf)) != global_conf.checksum)
 	{
 		global_conf.currentSet = 0;
@@ -48,6 +47,7 @@ bool readEEPROM()
 	{
 		lookupPitchRollRC[i] = (1526 + conf.rcExpo8 * (i * i - 15)) * i * (int32_t) conf.rcRate8 / 1192;
 	}
+
 	for (i = 0; i < 11; i++)
 	{
 		tmp = 10 * i - conf.thrMid8;
