@@ -139,9 +139,7 @@ void toggleResource(uint8_t resource, uint8_t activate)
 	case 0:
 	default:
 		if (activate == 1)
-		{
 			(*(volatile uint8_t *) ((0x05) + 0x20)) |= (1 << 5);
-		}
 		else
 			(*(volatile uint8_t *) ((0x05) + 0x20)) &= ~(1 << 5);
 		break;
