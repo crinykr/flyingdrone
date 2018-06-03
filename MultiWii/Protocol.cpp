@@ -16,6 +16,7 @@
 //to multiwii developpers/committers : do not add new MSP messages without a proper argumentation/agreement on the forum
 //range id [50-99] won't be assigned and can therefore be used for any custom multiwii fork without further MSP id conflict
 #define MSP_PRIVATE              1     //in+out message      to be used for a generic framework : MSP + function code (LIST/GET/SET) + data. no code yet
+
 #define MSP_IDENT                100   //out message         multitype + multiwii version + protocol version + capability variable
 #define MSP_STATUS               101   //out message         cycletime & errors_count & sensor present & box activation & current setting number
 #define MSP_RAW_IMU              102   //out message         9 DOF
@@ -37,9 +38,12 @@
 #define MSP_WP                   118   //out message         get a WP, WP# is in the payload, returns (WP#, lat, lon, alt, flags) WP#0-home, WP#16-poshold
 #define MSP_BOXIDS               119   //out message         get the permanent IDs associated to BOXes
 #define MSP_SERVO_CONF           120   //out message         Servo settings
+
 #define MSP_NAV_STATUS           121   //out message         Returns navigation status
 #define MSP_NAV_CONFIG           122   //out message         Returns navigation parameters
+
 #define MSP_CELLS                130   //out message         FRSKY Battery Cell Voltages
+
 #define MSP_SET_RAW_RC           200   //in message          8 rc chan
 #define MSP_SET_RAW_GPS          201   //in message          fix, numsat, lat, lon, alt, speed
 #define MSP_SET_PID              202   //in message          P I D coeff (9 are used currently)
@@ -55,18 +59,23 @@
 #define MSP_SET_SERVO_CONF       212   //in message          Servo settings
 #define MSP_SET_MOTOR            214   //in message          PropBalance function
 #define MSP_SET_NAV_CONFIG       215   //in message          Sets nav config parameters - write to the eeprom  
+
 #define MSP_SET_ACC_TRIM         239   //in message          set acc angle trim values
 #define MSP_ACC_TRIM             240   //out message         get acc angle trim values
 #define MSP_BIND                 241   //in message          no param
+
 #define MSP_EEPROM_WRITE         250   //in message          no param
+
 #define MSP_DEBUGMSG             253   //out message         debug string buffer
 #define MSP_DEBUG                254   //out message         debug1,debug2,debug3,debug4
 
 static uint8_t CURRENTPORT = 0;
-static uint8_t inBuf[64][1];
-static uint8_t checksum[1];
-static uint8_t indRX[1];
-static uint8_t cmdMSP[1];
+
+#define INBUF_SIZE 64
+static uint8_t inBuf[INBUF_SIZE][UART_NUMBER];
+static uint8_t checksum[UART_NUMBER];
+static uint8_t indRX[UART_NUMBER];
+static uint8_t cmdMSP[UART_NUMBER];
 
 void evaluateCommand(uint8_t c);
 
@@ -74,14 +83,12 @@ static uint8_t read8()
 {
 	return inBuf[indRX[CURRENTPORT]++][CURRENTPORT] & 0xff;
 }
-
 static uint16_t read16()
 {
 	uint16_t t = read8();
 	t += (uint16_t) read8() << 8;
 	return t;
 }
-
 static uint32_t read32()
 {
 	uint32_t t = read16();
@@ -99,7 +106,6 @@ static void serialize16(int16_t a)
 	serialize8((a) & 0xFF);
 	serialize8((a >> 8) & 0xFF);
 }
-
 static void serialize32(uint32_t a)
 {
 	serialize8((a) & 0xFF);
@@ -113,7 +119,7 @@ static void headSerialResponse(uint8_t err, uint8_t s)
 	serialize8('$');
 	serialize8('M');
 	serialize8(err ? '!' : '>');
-	checksum[CURRENTPORT] = 0;
+	checksum[CURRENTPORT] = 0; // start calculating a new checksum
 	serialize8(s);
 	serialize8(cmdMSP[CURRENTPORT]);
 }
@@ -134,13 +140,11 @@ static void tailSerialReply()
 	UartSendData(CURRENTPORT);
 }
 
-static void serializeNames(const char * s)
+static void serializeNames(PGM_P s)
 {
 	headSerialReply(strlen_P(s));
-	for (const char * c = s; (__extension__(
-			{	uint16_t __addr16 = (uint16_t)((uint16_t)(c)); uint8_t __result; __asm__ __volatile__ ( "lpm %0, Z" "\n\t" : "=r" (__result) : "z" (__addr16) ); __result;})); c++)
-		serialize8((__extension__(
-				{	uint16_t __addr16 = (uint16_t)((uint16_t)(c)); uint8_t __result; __asm__ __volatile__ ( "lpm %0, Z" "\n\t" : "=r" (__result) : "z" (__addr16) ); __result;})));
+	for (PGM_P c = s; pgm_read_byte(c); c++)
+		serialize8(pgm_read_byte(c));
 	tailSerialReply();
 }
 
@@ -171,47 +175,40 @@ static void mspAck()
 
 enum MSP_protocol_bytes
 {
-	IDLE,
-	HEADER_START,
-	HEADER_M,
-	HEADER_ARROW,
-	HEADER_SIZE,
-	HEADER_CMD
+	IDLE, HEADER_START, HEADER_M, HEADER_ARROW, HEADER_SIZE, HEADER_CMD
 };
 
 void serialCom()
 {
 	uint8_t c, cc, port, state, bytesTXBuff;
-	static uint8_t offset[1];
-	static uint8_t dataSize[1];
-	static uint8_t c_state[1];
-	uint32_t timeMax;
+	static uint8_t offset[UART_NUMBER];
+	static uint8_t dataSize[UART_NUMBER];
+	static uint8_t c_state[UART_NUMBER];
+	uint32_t timeMax; // limit max time in this function in case of GPS
 
 	timeMax = micros();
-	for (port = 0; port < 1; port++)
-	{
+	for (port = 0; port < UART_NUMBER; port++) {
 		CURRENTPORT = port;
+#define RX_COND
 		cc = SerialAvailable(port);
-		while (cc--)
-		{
-			bytesTXBuff = SerialUsedTXBuff(port);
-			if (bytesTXBuff > 128 - 50)
-				return;
+		while (cc--RX_COND) {
+			bytesTXBuff = SerialUsedTXBuff(port); // indicates the number of occupied bytes in TX buffer
+			if (bytesTXBuff > TX_BUFFER_SIZE - 50)
+				return; // ensure there is enough free TX buffer to go further (50 bytes margin)
 			c = SerialRead(port);
 			state = c_state[port];
-			if (state == IDLE)
-			{
+			if (state == IDLE) {
 				if (c == '$')
 					state = HEADER_START;
 			}
-			else if (state == HEADER_START)
+			else if (state == HEADER_START) {
 				state = (c == 'M') ? HEADER_M : IDLE;
-			else if (state == HEADER_M)
+			}
+			else if (state == HEADER_M) {
 				state = (c == '<') ? HEADER_ARROW : IDLE;
-			else if (state == HEADER_ARROW)
-			{
-				if (c > 64)
-				{
+			}
+			else if (state == HEADER_ARROW) {
+				if (c > INBUF_SIZE) {  // now we are expecting the payload size
 					state = IDLE;
 					continue;
 				}
@@ -219,33 +216,31 @@ void serialCom()
 				checksum[port] = c;
 				offset[port] = 0;
 				indRX[port] = 0;
-				state = HEADER_SIZE;
+				state = HEADER_SIZE; // the command is to follow
 			}
-			else if (state == HEADER_SIZE)
-			{
+			else if (state == HEADER_SIZE) {
 				cmdMSP[port] = c;
 				checksum[port] ^= c;
 				state = HEADER_CMD;
 			}
-			else if (state == HEADER_CMD)
-			{
-				if (offset[port] < dataSize[port])
-				{
+			else if (state == HEADER_CMD) {
+				if (offset[port] < dataSize[port]) {
 					checksum[port] ^= c;
 					inBuf[offset[port]++][port] = c;
 				}
-				else
-				{
-					if (checksum[port] == c)
-						evaluateCommand(cmdMSP[port]);
+				else {
+					if (checksum[port] == c) // compare calculated and transferred checksum
+						evaluateCommand(cmdMSP[port]); // we got a valid packet, evaluate it
 					state = IDLE;
-					cc = 0;
+					cc = 0; // no more than one MSP per port and per cycle
 				}
 			}
 			c_state[port] = state;
 		}
 	}
 }
+
+// crinyhere
 
 void evaluateCommand(uint8_t c)
 {
