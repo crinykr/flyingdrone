@@ -18,7 +18,6 @@ void PilotLampSequence(uint16_t speed, uint16_t pattern, uint8_t num_patterns);
 static uint8_t cycleDone[5] = { 0, 0, 0, 0, 0 }, resourceIsOn[5] = { 0, 0, 0, 0, 0 };
 static uint32_t LastToggleTime[5] = { 0, 0, 0, 0, 0 };
 static int16_t i2c_errors_count_old = 0;
-
 static uint8_t SequenceActive[5] = { 0, 0, 0, 0, 0 };
 
 void alarmHandler(void)
@@ -46,9 +45,7 @@ void patternDecode(uint8_t resource, uint16_t first, uint16_t second, uint16_t t
 	if (icnt[resource] < 3)
 	{
 		if (pattern[resource][icnt[resource]] != 0)
-		{
 			setTiming(resource, pattern[resource][icnt[resource]], pattern[resource][4]);
-		}
 	}
 	else if (LastToggleTime[resource] < (millis() - pattern[resource][3]))
 	{
@@ -62,9 +59,7 @@ void patternDecode(uint8_t resource, uint16_t first, uint16_t second, uint16_t t
 	if (cycleDone[resource] == 1 || pattern[resource][icnt[resource]] == 0)
 	{
 		if (icnt[resource] < 3)
-		{
 			icnt[resource]++;
-		}
 		cycleDone[resource] = 0;
 		turnOff(resource);
 	}
@@ -91,23 +86,17 @@ void turnOff(uint8_t resource)
 	else if (resource == 2)
 	{
 		if (resourceIsOn[2])
-		{
 			resourceIsOn[2] = 0;
-		}
 	}
 	else if (resource == 3)
 	{
 		if (resourceIsOn[3])
-		{
 			resourceIsOn[3] = 0;
-		}
 	}
 	else if (resource == 4)
 	{
 		if (resourceIsOn[4])
-		{
 			resourceIsOn[4] = 0;
-		}
 	}
 }
 
