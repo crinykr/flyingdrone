@@ -48,16 +48,16 @@ void patternDecode(uint8_t resource, uint16_t first, uint16_t second, uint16_t t
 			setTiming(resource, pattern[resource][icnt[resource]], pattern[resource][4]);
 	}
 	else if (LastToggleTime[resource] < (millis() - pattern[resource][3]))
-	{
+	{ //sequence is over: reset everything
 		icnt[resource] = 0;
-		SequenceActive[resource] = 0;
-		alarmArray[ALRM_FAC_TOGGLE] = ALRM_LVL_OFF;
-		alarmArray[ALRM_FAC_CONFIRM] = ALRM_LVL_OFF;
+		SequenceActive[resource] = 0; //sequence is now done, cycleDone sequence may begin
+		alarmArray[ALRM_FAC_TOGGLE] = ALRM_LVL_OFF; //reset toggle bit
+		alarmArray[ALRM_FAC_CONFIRM] = ALRM_LVL_OFF; //reset confirmation bit
 		turnOff(resource);
 		return;
 	}
 	if (cycleDone[resource] == 1 || pattern[resource][icnt[resource]] == 0)
-	{
+	{ //single on off cycle is done
 		if (icnt[resource] < 3)
 			icnt[resource]++;
 		cycleDone[resource] = 0;
@@ -71,7 +71,7 @@ void turnOff(uint8_t resource)
 	{
 		if (resourceIsOn[1])
 		{
-			(*(volatile uint8_t *) ((0x05) + 0x20)) &= ~1;
+			BUZZERPIN_OFF;
 			resourceIsOn[1] = 0;
 		}
 	}
@@ -80,7 +80,7 @@ void turnOff(uint8_t resource)
 		if (resourceIsOn[0])
 		{
 			resourceIsOn[0] = 0;
-			(*(volatile uint8_t *) ((0x05) + 0x20)) &= ~(1 << 5);
+			LEDPIN_OFF;
 		}
 	}
 	else if (resource == 2)
@@ -108,10 +108,10 @@ void blinkLED(uint8_t num, uint8_t ontime, uint8_t repeat)
 	{
 		for (i = 0; i < num; i++)
 		{
-			(*(volatile uint8_t *) ((0x03) + 0x20)) |= 1 << 5;
+			LEDPIN_TOGGLE; // switch LEDPIN state
 			delay(ontime);
 		}
-		delay(60);
+		delay(60); // wait 60 ms
 	}
 }
 
@@ -139,9 +139,13 @@ void toggleResource(uint8_t resource, uint8_t activate)
 	case 0:
 	default:
 		if (activate == 1)
-			(*(volatile uint8_t *) ((0x05) + 0x20)) |= (1 << 5);
+		{
+			LEDPIN_ON;
+		}
 		else
-			(*(volatile uint8_t *) ((0x05) + 0x20)) &= ~(1 << 5);
+		{
+			LEDPIN_OFF;
+		}
 		break;
 	}
 	return;

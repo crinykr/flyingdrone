@@ -11,9 +11,9 @@ void LoadDefaults(void);
 
 uint8_t calculate_sum(uint8_t *cb, uint8_t siz)
 {
-	uint8_t sum = 0x55;
+	uint8_t sum = 0x55; // checksum init
 	while (--siz)
-		sum += *cb++;
+		sum += *cb++; // calculate checksum (without checksum byte)
 	return sum;
 }
 
@@ -23,7 +23,7 @@ void readGlobalSet()
 	if (calculate_sum((uint8_t*) &global_conf, sizeof(global_conf)) != global_conf.checksum)
 	{
 		global_conf.currentSet = 0;
-		global_conf.accZero[ROLL] = 5000;
+		global_conf.accZero[ROLL] = 5000; // for config error signalization
 	}
 }
 
@@ -38,21 +38,20 @@ bool readEEPROM()
 	if (calculate_sum((uint8_t*) &conf, sizeof(conf)) != conf.checksum)
 	{
 		blinkLED(6, 100, 3);
-		LoadDefaults();
-		return false;
+		LoadDefaults(); // force load defaults
+		return false; // defaults loaded, don't reload constants (EEPROM life saving)
 	}
+	// 500/128=3.90625  3.9062*3.9062=15.259  1526*100/128=1192
 	for (i = 0; i < 5; i++)
-	{
 		lookupPitchRollRC[i] = (1526 + conf.rcExpo8 * (i * i - 15)) * i * (int32_t) conf.rcRate8 / 1192;
-	}
 	for (i = 0; i < 11; i++)
 	{
 		tmp = 10 * i - conf.thrMid8;
 		y = conf.thrMid8;
 		if (tmp > 0)
 			y = 100 - y;
-		lookupThrottleRC[i] = 100 * conf.thrMid8 + tmp * ((int32_t) conf.thrExpo8 * (tmp * tmp) / ((uint16_t) y * y) + 100 - conf.thrExpo8);
-		lookupThrottleRC[i] = conf.minthrottle + (uint32_t)((uint16_t)(1850 - conf.minthrottle)) * lookupThrottleRC[i] / 10000;
+		lookupThrottleRC[i] = 100 * conf.thrMid8 + tmp * ((int32_t) conf.thrExpo8 * (tmp * tmp) / ((uint16_t) y * y) + 100 - conf.thrExpo8); // [0;10000]
+		lookupThrottleRC[i] = conf.minthrottle + (uint32_t)((uint16_t)(MAXTHROTTLE - conf.minthrottle)) * lookupThrottleRC[i] / 10000; // [0;10000] -> [conf.minthrottle;MAXTHROTTLE]
 	}
 	return true;
 }
@@ -77,11 +76,11 @@ void writeParams(uint8_t b)
 
 void update_constants()
 {
-	conf.minthrottle = 1150;
-	conf.mag_declination = (int16_t)(4.02f * 10);
-	conf.yawCollPrecomp = 10;
-	conf.yawCollPrecompDeadband = 120;
-	writeParams(0);
+	conf.minthrottle = MINTHROTTLE;
+	conf.mag_declination = (int16_t)(MAG_DECLINATION * 10);
+	conf.yawCollPrecomp = YAW_COLL_PRECOMP;
+	conf.yawCollPrecompDeadband = YAW_COLL_PRECOMP_DEADBAND;
+	writeParams(0); // this will also (p)reset checkNewConf with the current version number again.
 }
 
 void LoadDefaults()
@@ -105,15 +104,15 @@ void LoadDefaults()
 	conf.pid[PIDALT].I8 = 25;
 	conf.pid[PIDALT].D8 = 24;
 
-	conf.pid[PIDPOS].P8 = .15 * 100;
-	conf.pid[PIDPOS].I8 = 0.0 * 100;
+	conf.pid[PIDPOS].P8 = POSHOLD_P * 100;
+	conf.pid[PIDPOS].I8 = POSHOLD_I * 100;
 	conf.pid[PIDPOS].D8 = 0;
-	conf.pid[PIDPOSR].P8 = 3.4 * 10;
-	conf.pid[PIDPOSR].I8 = 0.14 * 100;
-	conf.pid[PIDPOSR].D8 = 0.053 * 1000;
-	conf.pid[PIDNAVR].P8 = 2.5 * 10;
-	conf.pid[PIDNAVR].I8 = 0.33 * 100;
-	conf.pid[PIDNAVR].D8 = 0.083 * 1000;
+	conf.pid[PIDPOSR].P8 = POSHOLD_RATE_P * 10;
+	conf.pid[PIDPOSR].I8 = POSHOLD_RATE_I * 100;
+	conf.pid[PIDPOSR].D8 = POSHOLD_RATE_D * 1000;
+	conf.pid[PIDNAVR].P8 = NAV_P * 10;
+	conf.pid[PIDNAVR].I8 = NAV_I * 100;
+	conf.pid[PIDNAVR].D8 = NAV_D * 1000;
 
 	conf.pid[PIDMAG].P8 = 40;
 
@@ -134,5 +133,5 @@ void LoadDefaults()
 	conf.angleTrim[1] = 0;
 	conf.powerTrigger1 = 0;
 
-	update_constants();
+	update_constants(); // this will also write to eeprom
 }
