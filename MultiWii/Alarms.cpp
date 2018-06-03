@@ -103,7 +103,6 @@ void turnOff(uint8_t resource)
 void blinkLED(uint8_t num, uint8_t ontime, uint8_t repeat)
 {
 	uint8_t i, r;
-
 	for (r = 0; r < repeat; r++)
 	{
 		for (i = 0; i < num; i++)
