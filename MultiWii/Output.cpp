@@ -19,24 +19,18 @@ void writeMotors()
 void writeAllMotors(int16_t mc)
 {
 	for (uint8_t i = 0; i < 4; i++)
-	{
 		motor[i] = mc;
-	}
 	writeMotors();
 }
 
 void initOutput()
 {
 	for (uint8_t i = 0; i < 4; i++)
-	{
 		pinMode(PWM_PIN[i], 0x1);
-	}
-
 	(*(volatile uint8_t *) (0x80)) |= (1 << (7));
 	(*(volatile uint8_t *) (0x80)) |= (1 << (5));
 	(*(volatile uint8_t *) (0xB0)) |= (1 << (7));
 	(*(volatile uint8_t *) (0xB0)) |= (1 << (5));
-
 	writeAllMotors(1000);
 	delay(300);
 
@@ -56,23 +50,17 @@ void mixTable()
 	motor[1] = rcCommand[THROTTLE] + axisPID[ROLL] * -1 + axisPID[PITCH] * -1 + 1 * axisPID[YAW] * +1;
 	motor[2] = rcCommand[THROTTLE] + axisPID[ROLL] * +1 + axisPID[PITCH] * +1 + 1 * axisPID[YAW] * +1;
 	motor[3] = rcCommand[THROTTLE] + axisPID[ROLL] * +1 + axisPID[PITCH] * -1 + 1 * axisPID[YAW] * -1;
-
 	maxMotor = motor[0];
-
 	for (i = 1; i < 4; i++)
 		if (motor[i] > maxMotor)
 			maxMotor = motor[i];
-
 	for (i = 0; i < 4; i++)
 	{
 		if (maxMotor > 1850)
 			motor[i] -= maxMotor - 1850;
-
 		motor[i] = ((motor[i]) < (conf.minthrottle) ? (conf.minthrottle) : ((motor[i]) > (1850) ? (1850) : (motor[i])));
-
 		if ((rcData[THROTTLE] < 1100) && !f.BARO_MODE)
 			motor[i] = conf.minthrottle;
-
 		if (!f.ARMED)
 			motor[i] = 1000;
 	}

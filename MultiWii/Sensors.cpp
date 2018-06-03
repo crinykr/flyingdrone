@@ -16,10 +16,8 @@ static uint8_t rawADC[6];
 
 void i2c_init(void)
 {
-
 	(*(volatile uint8_t *) ((0x08) + 0x20)) &= ~(1 << 4);
 	(*(volatile uint8_t *) ((0x08) + 0x20)) &= ~(1 << 5);
-
 	(*(volatile uint8_t *) (0xB9)) = 0;
 	(*(volatile uint8_t *) (0xB8)) = ((16000000L / 400000) - 16) / 2;
 	(*(volatile uint8_t *) (0xBC)) = 1 << 2;
@@ -36,7 +34,6 @@ void __attribute__ ((noinline)) waitTransmissionI2C(uint8_t twcr)
 		if (count == 0)
 		{
 			(*(volatile uint8_t *) (0xBC)) = 0;
-
 			i2c_errors_count++;
 			break;
 		}
@@ -53,7 +50,6 @@ void i2c_rep_start(uint8_t address)
 void i2c_stop(void)
 {
 	(*(volatile uint8_t *) (0xBC)) = (1 << 7) | (1 << 2) | (1 << 4);
-
 }
 
 void i2c_write(uint8_t data)
@@ -118,25 +114,18 @@ void GYRO_Common()
 		for (axis = 0; axis < 3; axis++)
 		{
 			if (calibratingG == 512)
-			{
 				g[axis] = 0;
-
-			}
 			g[axis] += imu.gyroADC[axis];
 			gyroZero[axis] = g[axis] >> 9;
 		}
-
 		calibratingG--;
 	}
-
 	for (axis = 0; axis < 3; axis++)
 	{
 		imu.gyroADC[axis] -= gyroZero[axis];
-
 		imu.gyroADC[axis] = (
 				(imu.gyroADC[axis]) < (previousGyroADC[axis] - 800) ?
 						(previousGyroADC[axis] - 800) : ((imu.gyroADC[axis]) > (previousGyroADC[axis] + 800) ? (previousGyroADC[axis] + 800) : (imu.gyroADC[axis])));
-
 		previousGyroADC[axis] = imu.gyroADC[axis];
 	}
 }
@@ -144,6 +133,7 @@ void GYRO_Common()
 void ACC_Common()
 {
 	static int32_t a[3];
+
 	if (calibratingA > 0)
 	{
 		calibratingA--;
@@ -183,7 +173,6 @@ static void Baro_Common()
 
 static struct
 {
-
 	uint16_t c[7];
 	uint32_t ut;
 	uint32_t up;
@@ -193,10 +182,8 @@ static struct
 
 static void Baro_init()
 {
-
 	i2c_writeReg(0x77, 0x1E, 0);
 	delay(100);
-
 	union
 	{
 		uint16_t val;
@@ -297,14 +284,12 @@ uint8_t Mag_getADC()
 		return 0;
 	t = currentTime + 100000;
 	Device_Mag_getADC();
-
 	for (axis = 0; axis < 3; axis++)
 	{
 		imu.magADC[axis] = imu.magADC[axis] * magGain[axis];
 		if (!f.CALIBRATE_MAG)
 			imu.magADC[axis] -= global_conf.magZero[axis];
 	}
-
 	if (f.CALIBRATE_MAG)
 	{
 		if (tCal == 0)
@@ -312,7 +297,6 @@ uint8_t Mag_getADC()
 		if ((t - tCal) < 30000000)
 		{
 			(*(volatile uint8_t *) ((0x03) + 0x20)) |= 1 << 5;
-			;
 			for (axis = 0; axis < 3; axis++)
 			{
 				if (tCal == t)
@@ -340,7 +324,6 @@ uint8_t Mag_getADC()
 			writeGlobalSet(1);
 		}
 	}
-
 	return 1;
 }
 
@@ -385,16 +368,13 @@ static void Mag_init()
 	i2c_writeReg(0x1E, 2, 1);
 	delay(100);
 	getADC();
-
 	if (!bias_collect(0x010 + 1))
 		bret = false;
 	if (!bias_collect(0x010 + 2))
 		bret = false;
-
 	if (bret)
 		for (uint8_t axis = 0; axis < 3; axis++)
 			magGain[axis] = 820.0 * (+1.16) * 2.0 * 10.0 / xyz_total[axis];
-
 	i2c_writeReg(0x1E, 0, 0x70);
 	i2c_writeReg(0x1E, 1, 0x20);
 	i2c_writeReg(0x1E, 2, 0x00);
@@ -408,7 +388,6 @@ static void Gyro_init()
 	i2c_writeReg(0x68, 0x6B, 0x03);
 	i2c_writeReg(0x68, 0x1A, 0);
 	i2c_writeReg(0x68, 0x1B, 0x18);
-
 	i2c_writeReg(0x68, 0x37, 0x02);
 }
 
@@ -420,14 +399,12 @@ void Gyro_getADC()
 		imu.gyroADC[PITCH] = -((rawADC[0] << 8) | rawADC[1]) >> 2;
 		imu.gyroADC[YAW] = -((rawADC[4] << 8) | rawADC[5]) >> 2;
 	}
-
 	GYRO_Common();
 }
 
 static void ACC_init()
 {
 	i2c_writeReg(0x68, 0x1C, 0x10);
-
 	i2c_writeReg(0x68, 0x6A, 0b00100000);
 	i2c_writeReg(0x68, 0x37, 0x00);
 	i2c_writeReg(0x68, 0x24, 0x0D);
@@ -444,14 +421,12 @@ void ACC_getADC()
 		imu.accADC[PITCH] = -((rawADC[2] << 8) | rawADC[3]) >> 3;
 		imu.accADC[YAW] = ((rawADC[4] << 8) | rawADC[5]) >> 3;
 	}
-
 	ACC_Common();
 }
 
 static void Device_Mag_getADC()
 {
 	i2c_getSixRawADC(0x68, 0x49);
-
 	{
 		imu.magADC[ROLL] = ((rawADC[0] << 8) | rawADC[1]);
 		imu.magADC[PITCH] = ((rawADC[4] << 8) | rawADC[5]);

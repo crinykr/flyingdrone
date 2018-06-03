@@ -21,7 +21,6 @@ void __vector_19(void)
 		(*(volatile uint8_t *) (0xC6)) = serialBufferTX[t][0];
 		serialTailTX[0] = t;
 	}
-
 	if (t == serialHeadTX[0])
 		(*(volatile uint8_t *) (0xC1)) &= ~(1 << 5);
 }
@@ -37,7 +36,6 @@ void SerialOpen(uint8_t port, uint32_t baud)
 	uint8_t l = ((16000000L / 4 / baud - 1) / 2);
 	switch (port)
 	{
-
 	case 0:
 		(*(volatile uint8_t *) (0xC0)) = (1 << 1);
 		(*(volatile uint8_t *) (0xC5)) = h;
@@ -51,7 +49,6 @@ void SerialEnd(uint8_t port)
 {
 	switch (port)
 	{
-
 	case 0:
 		(*(volatile uint8_t *) (0xC1)) &= ~((1 << 4) | (1 << 3) | (1 << 7) | (1 << 5));
 		break;
@@ -84,7 +81,6 @@ uint8_t SerialRead(uint8_t port)
 			t = 0;
 		serialTailRX[port] = t;
 	}
-
 	return c;
 }
 

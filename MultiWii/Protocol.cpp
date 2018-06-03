@@ -15,9 +15,7 @@
 
 //to multiwii developpers/committers : do not add new MSP messages without a proper argumentation/agreement on the forum
 //range id [50-99] won't be assigned and can therefore be used for any custom multiwii fork without further MSP id conflict
-
 #define MSP_PRIVATE              1     //in+out message      to be used for a generic framework : MSP + function code (LIST/GET/SET) + data. no code yet
-
 #define MSP_IDENT                100   //out message         multitype + multiwii version + protocol version + capability variable
 #define MSP_STATUS               101   //out message         cycletime & errors_count & sensor present & box activation & current setting number
 #define MSP_RAW_IMU              102   //out message         9 DOF
@@ -39,12 +37,9 @@
 #define MSP_WP                   118   //out message         get a WP, WP# is in the payload, returns (WP#, lat, lon, alt, flags) WP#0-home, WP#16-poshold
 #define MSP_BOXIDS               119   //out message         get the permanent IDs associated to BOXes
 #define MSP_SERVO_CONF           120   //out message         Servo settings
-
 #define MSP_NAV_STATUS           121   //out message         Returns navigation status
 #define MSP_NAV_CONFIG           122   //out message         Returns navigation parameters
-
 #define MSP_CELLS                130   //out message         FRSKY Battery Cell Voltages
-
 #define MSP_SET_RAW_RC           200   //in message          8 rc chan
 #define MSP_SET_RAW_GPS          201   //in message          fix, numsat, lat, lon, alt, speed
 #define MSP_SET_PID              202   //in message          P I D coeff (9 are used currently)
@@ -60,13 +55,10 @@
 #define MSP_SET_SERVO_CONF       212   //in message          Servo settings
 #define MSP_SET_MOTOR            214   //in message          PropBalance function
 #define MSP_SET_NAV_CONFIG       215   //in message          Sets nav config parameters - write to the eeprom  
-
 #define MSP_SET_ACC_TRIM         239   //in message          set acc angle trim values
 #define MSP_ACC_TRIM             240   //out message         get acc angle trim values
 #define MSP_BIND                 241   //in message          no param
-
 #define MSP_EEPROM_WRITE         250   //in message          no param
-
 #define MSP_DEBUGMSG             253   //out message         debug string buffer
 #define MSP_DEBUG                254   //out message         debug1,debug2,debug3,debug4
 
@@ -179,7 +171,12 @@ static void mspAck()
 
 enum MSP_protocol_bytes
 {
-	IDLE, HEADER_START, HEADER_M, HEADER_ARROW, HEADER_SIZE, HEADER_CMD
+	IDLE,
+	HEADER_START,
+	HEADER_M,
+	HEADER_ARROW,
+	HEADER_SIZE,
+	HEADER_CMD
 };
 
 void serialCom()
@@ -194,7 +191,6 @@ void serialCom()
 	for (port = 0; port < 1; port++)
 	{
 		CURRENTPORT = port;
-
 		cc = SerialAvailable(port);
 		while (cc--)
 		{
@@ -202,22 +198,16 @@ void serialCom()
 			if (bytesTXBuff > 128 - 50)
 				return;
 			c = SerialRead(port);
-
 			state = c_state[port];
-
 			if (state == IDLE)
 			{
 				if (c == '$')
 					state = HEADER_START;
 			}
 			else if (state == HEADER_START)
-			{
 				state = (c == 'M') ? HEADER_M : IDLE;
-			}
 			else if (state == HEADER_M)
-			{
 				state = (c == '<') ? HEADER_ARROW : IDLE;
-			}
 			else if (state == HEADER_ARROW)
 			{
 				if (c > 64)
@@ -263,7 +253,6 @@ void evaluateCommand(uint8_t c)
 
 	switch (c)
 	{
-
 	case 200:
 		s_struct_w((uint8_t*) &rcSerial, 16);
 		rcSerialCount = 50;
@@ -274,15 +263,12 @@ void evaluateCommand(uint8_t c)
 		break;
 	case 203:
 		mspAck();
-
 		s_struct_w((uint8_t*) &conf.activate[0], CHECKBOXITEMS * 2);
-
 		break;
 	case 204:
 		mspAck();
 		s_struct_w((uint8_t*) &conf.rcRate8, 7);
 		break;
-
 	case 207:
 		struct
 		{
@@ -293,11 +279,8 @@ void evaluateCommand(uint8_t c)
 		} set_misc;
 		mspAck();
 		s_struct_w((uint8_t*) &set_misc, 22);
-
 		conf.minthrottle = set_misc.b;
-
 		conf.mag_declination = set_misc.h;
-
 		break;
 	case 114:
 		struct
@@ -311,18 +294,14 @@ void evaluateCommand(uint8_t c)
 		misc.b = conf.minthrottle;
 		misc.c = 1850;
 		misc.d = 1000;
-
 		misc.e = 0;
-
 		misc.f = 0;
 		misc.g = 0;
-
 		misc.h = conf.mag_declination;
 		misc.i = 0;
 		misc.j = 0;
 		misc.k = 0;
 		misc.l = 0;
-
 		s_struct((uint8_t*) &misc, 22);
 		break;
 	case 211:
@@ -351,15 +330,12 @@ void evaluateCommand(uint8_t c)
 		st.cycleTime = cycleTime;
 		st.i2c_errors_count = i2c_errors_count;
 		st.sensor = 1 | 1 << 1 | 1 << 2 | 0 << 3 | 0 << 4;
-
 		if (f.ANGLE_MODE)
 			tmp |= 1 << BOXANGLE;
 		if (f.HORIZON_MODE)
 			tmp |= 1 << BOXHORIZON;
-
 		if (f.BARO_MODE)
 			tmp |= 1 << BOXBARO;
-
 		if (f.MAG_MODE)
 			tmp |= 1 << BOXMAG;
 		if (f.ARMED)
@@ -369,7 +345,6 @@ void evaluateCommand(uint8_t c)
 		s_struct((uint8_t*) &st, 11);
 		break;
 	case 102:
-
 		s_struct((uint8_t*) &imu, 18);
 		break;
 	case 103:
@@ -418,9 +393,7 @@ void evaluateCommand(uint8_t c)
 		serializeNames(pidnames);
 		break;
 	case 113:
-
 		s_struct((uint8_t*) &conf.activate[0], 2 * CHECKBOXITEMS);
-
 		break;
 	case 116:
 		serializeNames(boxnames);
@@ -445,13 +418,11 @@ void evaluateCommand(uint8_t c)
 			calibratingA = 512;
 		mspAck();
 		break;
-
 	case 206:
 		if (!f.ARMED)
 			f.CALIBRATE_MAG = 1;
 		mspAck();
 		break;
-
 	case 250:
 		writeParams(0);
 		mspAck();
@@ -472,8 +443,3 @@ void SerialWrite16(uint8_t port, int16_t val)
 	serialize16(val);
 	UartSendData(port);
 }
-
-void debugmsg_append_str(const char *str)
-{
-}
-

@@ -1,11 +1,24 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-enum rc {
-	ROLL, PITCH, YAW, THROTTLE, AUX1, AUX2, AUX3, AUX4, AUX5, AUX6, AUX7, AUX8
+enum rc
+{
+	ROLL,
+	PITCH,
+	YAW,
+	THROTTLE,
+	AUX1,
+	AUX2,
+	AUX3,
+	AUX4,
+	AUX5,
+	AUX6,
+	AUX7,
+	AUX8
 };
 
-enum pid {
+enum pid
+{
 	PIDROLL,
 	PIDPITCH,
 	PIDYAW,
@@ -15,15 +28,22 @@ enum pid {
 	PIDNAVR,
 	PIDLEVEL,
 	PIDMAG,
-	PIDVEL,     // not used currently
+	PIDVEL, // not used currently
 	PIDITEMS
 };
 
-enum box {
-	BOXARM, BOXANGLE, BOXHORIZON, BOXBARO, BOXMAG, CHECKBOXITEMS
+enum box
+{
+	BOXARM,
+	BOXANGLE,
+	BOXHORIZON,
+	BOXBARO,
+	BOXMAG,
+	CHECKBOXITEMS
 };
 
-typedef struct {
+typedef struct
+{
 	int16_t accSmooth[3];
 	int16_t gyroData[3];
 	int16_t magADC[3];
@@ -31,7 +51,8 @@ typedef struct {
 	int16_t accADC[3];
 } imu_t;
 
-typedef struct {
+typedef struct
+{
 	uint8_t vbat;               // battery voltage in 0.1V steps
 	uint16_t intPowerMeterSum;
 	uint16_t rssi;              // range: [0;1023]
@@ -40,17 +61,20 @@ typedef struct {
 	uint16_t vbatcells[VBAT_CELLS_NUM];
 } analog_t;
 
-typedef struct {
+typedef struct
+{
 	int32_t EstAlt;             // in cm
 	int16_t vario;              // variometer in cm/s
 } alt_t;
 
-typedef struct {
+typedef struct
+{
 	int16_t angle[2]; // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
 	int16_t heading;             // variometer in cm/s
 } att_t;
 
-typedef struct {
+typedef struct
+{
 	uint8_t OK_TO_ARM :1;
 	uint8_t ARMED :1;
 	uint8_t ACC_CALIBRATED :1;
@@ -64,7 +88,8 @@ typedef struct {
 	uint8_t THROTTLE_IGNORED :1; // If it is 1 then ignore throttle stick movements in baro mode;
 } flags_struct_t;
 
-typedef struct {
+typedef struct
+{
 	uint8_t currentSet;
 	int16_t accZero[3];
 	int16_t magZero[3];
@@ -72,20 +97,23 @@ typedef struct {
 	uint8_t checksum;      // MUST BE ON LAST POSITION OF STRUCTURE !
 } global_conf_t;
 
-struct pid_ {
+struct pid_
+{
 	uint8_t P8;
 	uint8_t I8;
 	uint8_t D8;
 };
 
-struct servo_conf_ { // this is a generic way to configure a servo, every multi type with a servo should use it
+struct servo_conf_
+{ // this is a generic way to configure a servo, every multi type with a servo should use it
 	int16_t min; // minimum value, must be more than 1020 with the current implementation
 	int16_t max; // maximum value, must be less than 2000 with the current implementation
 	int16_t middle;     // default should be 1500
 	int8_t rate; // range [-100;+100] ; can be used to ajust a rate 0-100% and a direction
 };
 
-typedef struct {
+typedef struct
+{
 	pid_ pid[PIDITEMS];
 	uint8_t rcRate8;
 	uint8_t rcExpo8;

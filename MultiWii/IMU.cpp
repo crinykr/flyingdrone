@@ -96,7 +96,6 @@ float InvSqrt(float x)
 
 	conv.f = x;
 	conv.i = 0x5f1ffff9 - (conv.i >> 1);
-
 	return conv.f * (1.68191409f - 0.703952253f * x * conv.f * conv.f);
 }
 

@@ -34,7 +34,6 @@ bool readEEPROM()
 	uint8_t y;
 
 	global_conf.currentSet = 0;
-
 	eeprom_read_block((void*) &conf, (void*) (global_conf.currentSet * sizeof(conf) + sizeof(global_conf)), sizeof(conf));
 	if (calculate_sum((uint8_t*) &conf, sizeof(conf)) != conf.checksum)
 	{
@@ -42,12 +41,10 @@ bool readEEPROM()
 		LoadDefaults();
 		return false;
 	}
-
 	for (i = 0; i < 5; i++)
 	{
 		lookupPitchRollRC[i] = (1526 + conf.rcExpo8 * (i * i - 15)) * i * (int32_t) conf.rcRate8 / 1192;
 	}
-
 	for (i = 0; i < 11; i++)
 	{
 		tmp = 10 * i - conf.thrMid8;
@@ -71,10 +68,8 @@ void writeGlobalSet(uint8_t b)
 void writeParams(uint8_t b)
 {
 	global_conf.currentSet = 0;
-
 	conf.checksum = calculate_sum((uint8_t*) &conf, sizeof(conf));
 	eeprom_write_block((const void*) &conf, (void*) (global_conf.currentSet * sizeof(conf) + sizeof(global_conf)), sizeof(conf));
-
 	readEEPROM();
 	if (b == 1)
 		blinkLED(15, 20, 1);
@@ -86,7 +81,6 @@ void update_constants()
 	conf.mag_declination = (int16_t)(4.02f * 10);
 	conf.yawCollPrecomp = 10;
 	conf.yawCollPrecompDeadband = 120;
-
 	writeParams(0);
 }
 
