@@ -187,28 +187,35 @@ void serialCom()
 	uint32_t timeMax; // limit max time in this function in case of GPS
 
 	timeMax = micros();
-	for (port = 0; port < UART_NUMBER; port++) {
+	for (port = 0; port < UART_NUMBER; port++)
+	{
 		CURRENTPORT = port;
 #define RX_COND
 		cc = SerialAvailable(port);
-		while (cc--RX_COND) {
+		while (cc--RX_COND)
+		{
 			bytesTXBuff = SerialUsedTXBuff(port); // indicates the number of occupied bytes in TX buffer
 			if (bytesTXBuff > TX_BUFFER_SIZE - 50)
 				return; // ensure there is enough free TX buffer to go further (50 bytes margin)
 			c = SerialRead(port);
 			state = c_state[port];
-			if (state == IDLE) {
+			if (state == IDLE)
+			{
 				if (c == '$')
 					state = HEADER_START;
 			}
-			else if (state == HEADER_START) {
+			else if (state == HEADER_START)
+			{
 				state = (c == 'M') ? HEADER_M : IDLE;
 			}
-			else if (state == HEADER_M) {
+			else if (state == HEADER_M)
+			{
 				state = (c == '<') ? HEADER_ARROW : IDLE;
 			}
-			else if (state == HEADER_ARROW) {
-				if (c > INBUF_SIZE) {  // now we are expecting the payload size
+			else if (state == HEADER_ARROW)
+			{
+				if (c > INBUF_SIZE)
+				{  // now we are expecting the payload size
 					state = IDLE;
 					continue;
 				}
@@ -218,17 +225,21 @@ void serialCom()
 				indRX[port] = 0;
 				state = HEADER_SIZE; // the command is to follow
 			}
-			else if (state == HEADER_SIZE) {
+			else if (state == HEADER_SIZE)
+			{
 				cmdMSP[port] = c;
 				checksum[port] ^= c;
 				state = HEADER_CMD;
 			}
-			else if (state == HEADER_CMD) {
-				if (offset[port] < dataSize[port]) {
+			else if (state == HEADER_CMD)
+			{
+				if (offset[port] < dataSize[port])
+				{
 					checksum[port] ^= c;
 					inBuf[offset[port]++][port] = c;
 				}
-				else {
+				else
+				{
 					if (checksum[port] == c) // compare calculated and transferred checksum
 						evaluateCommand(cmdMSP[port]); // we got a valid packet, evaluate it
 					state = IDLE;
@@ -240,31 +251,33 @@ void serialCom()
 	}
 }
 
-// crinyhere
-
 void evaluateCommand(uint8_t c)
 {
 	uint32_t tmp = 0;
 
 	switch (c)
 	{
-	case 200:
+	// adding this message as a comment will return an error status for MSP_PRIVATE (end of switch), allowing third party tools to distinguish the implementation of this message
+	//case MSP_PRIVATE:
+	//  headSerialError();tailSerialReply(); // we don't have any custom msp currently, so tell the gui we do not use that
+	//  break;
+	case MSP_SET_RAW_RC:
 		s_struct_w((uint8_t*) &rcSerial, 16);
-		rcSerialCount = 50;
+		rcSerialCount = 50; // 1s transition
 		break;
-	case 202:
+	case MSP_SET_PID:
 		mspAck();
 		s_struct_w((uint8_t*) &conf.pid[0].P8, 3 * PIDITEMS);
 		break;
-	case 203:
+	case MSP_SET_BOX:
 		mspAck();
 		s_struct_w((uint8_t*) &conf.activate[0], CHECKBOXITEMS * 2);
 		break;
-	case 204:
+	case MSP_SET_RC_TUNING:
 		mspAck();
 		s_struct_w((uint8_t*) &conf.rcRate8, 7);
 		break;
-	case 207:
+	case MSP_SET_MISC:
 		struct
 		{
 			uint16_t a, b, c, d, e, f;
@@ -277,7 +290,7 @@ void evaluateCommand(uint8_t c)
 		conf.minthrottle = set_misc.b;
 		conf.mag_declination = set_misc.h;
 		break;
-	case 114:
+	case MSP_MISC:
 		struct
 		{
 			uint16_t a, b, c, d, e, f;
@@ -287,8 +300,8 @@ void evaluateCommand(uint8_t c)
 		} misc;
 		misc.a = intPowerTrigger1;
 		misc.b = conf.minthrottle;
-		misc.c = 1850;
-		misc.d = 1000;
+		misc.c = MAXTHROTTLE;
+		misc.d = MINCOMMAND;
 		misc.e = 0;
 		misc.f = 0;
 		misc.g = 0;
@@ -299,23 +312,23 @@ void evaluateCommand(uint8_t c)
 		misc.l = 0;
 		s_struct((uint8_t*) &misc, 22);
 		break;
-	case 211:
+	case MSP_SET_HEAD:
 		mspAck();
 		s_struct_w((uint8_t*) &magHold, 2);
 		break;
-	case 100:
+	case MSP_IDENT:
 		struct
 		{
 			uint8_t v, t, msp_v;
 			uint32_t cap;
 		} id;
-		id.v = 240;
-		id.t = 3;
-		id.msp_v = 0;
-		id.cap = (0 + 0) | 0 << 2 | 0 << 3 | 0 << 4 | 0 << 5 | ((uint32_t) 7 << 28);
+		id.v = VERSION;
+		id.t = MULTITYPE;
+		id.msp_v = MSP_VERSION;
+		id.cap = (0 + BIND_CAPABLE) | DYNBAL << 2 | FLAP << 3 | NAVCAP << 4 | EXTAUX << 5 | ((uint32_t) NAVI_VERSION << 28); //Navi version is stored in the upper four bits;
 		s_struct((uint8_t*) &id, 7);
 		break;
-	case 101:
+	case MSP_STATUS:
 		struct
 		{
 			uint16_t cycleTime, i2c_errors_count, sensor;
@@ -324,7 +337,7 @@ void evaluateCommand(uint8_t c)
 		} st;
 		st.cycleTime = cycleTime;
 		st.i2c_errors_count = i2c_errors_count;
-		st.sensor = 1 | 1 << 1 | 1 << 2 | 0 << 3 | 0 << 4;
+		st.sensor = ACC | BARO << 1 | MAG << 2 | GPS << 3 | SONAR << 4;
 		if (f.ANGLE_MODE)
 			tmp |= 1 << BOXANGLE;
 		if (f.HORIZON_MODE)
@@ -339,93 +352,92 @@ void evaluateCommand(uint8_t c)
 		st.set = global_conf.currentSet;
 		s_struct((uint8_t*) &st, 11);
 		break;
-	case 102:
+	case MSP_RAW_IMU:
 		s_struct((uint8_t*) &imu, 18);
 		break;
-	case 103:
+	case MSP_SERVO:
 		s_struct((uint8_t*) &servo, 16);
 		break;
-	case 120:
-		s_struct((uint8_t*) &conf.servoConf[0].min, 56);
+	case MSP_SERVO_CONF:
+		s_struct((uint8_t*) &conf.servoConf[0].min, 56); // struct servo_conf_ is 7 bytes length: min:2 / max:2 / middle:2 / rate:1    ----     8 servo =>  8x7 = 56
 		break;
-	case 212:
+	case MSP_SET_SERVO_CONF:
 		mspAck();
 		s_struct_w((uint8_t*) &conf.servoConf[0].min, 56);
 		break;
-	case 104:
+	case MSP_MOTOR:
 		s_struct((uint8_t*) &motor, 16);
 		break;
-	case 240:
+	case MSP_ACC_TRIM:
 		headSerialReply(4);
 		s_struct_partial((uint8_t*) &conf.angleTrim[PITCH], 2);
 		s_struct_partial((uint8_t*) &conf.angleTrim[ROLL], 2);
 		tailSerialReply();
 		break;
-	case 239:
+	case MSP_SET_ACC_TRIM:
 		mspAck();
 		s_struct_w((uint8_t*) &conf.angleTrim[PITCH], 2);
 		s_struct_w((uint8_t*) &conf.angleTrim[ROLL], 2);
 		break;
-	case 105:
-		s_struct((uint8_t*) &rcData, 12 * 2);
+	case MSP_RC:
+		s_struct((uint8_t*) &rcData, RC_CHANS * 2);
 		break;
-	case 108:
+	case MSP_ATTITUDE:
 		s_struct((uint8_t*) &att, 6);
 		break;
-	case 109:
+	case MSP_ALTITUDE:
 		s_struct((uint8_t*) &alt, 6);
 		break;
-	case 110:
+	case MSP_ANALOG:
 		s_struct((uint8_t*) &analog, 7);
 		break;
-	case 111:
+	case MSP_RC_TUNING:
 		s_struct((uint8_t*) &conf.rcRate8, 7);
 		break;
-	case 112:
+	case MSP_PID:
 		s_struct((uint8_t*) &conf.pid[0].P8, 3 * PIDITEMS);
 		break;
-	case 117:
+	case MSP_PIDNAMES:
 		serializeNames(pidnames);
 		break;
-	case 113:
+	case MSP_BOX:
 		s_struct((uint8_t*) &conf.activate[0], 2 * CHECKBOXITEMS);
 		break;
-	case 116:
+	case MSP_BOXNAMES:
 		serializeNames(boxnames);
 		break;
-	case 119:
+	case MSP_BOXIDS:
 		headSerialReply(CHECKBOXITEMS);
 		for (uint8_t i = 0; i < CHECKBOXITEMS; i++)
-			serialize8((__extension__(
-					{	uint16_t __addr16 = (uint16_t)((uint16_t)(&(boxids[i]))); uint8_t __result; __asm__ __volatile__ ( "lpm %0, Z" "\n\t" : "=r" (__result) : "z" (__addr16) ); __result;})));
+			serialize8(pgm_read_byte(&(boxids[i])));
 		tailSerialReply();
 		break;
-	case 115:
+	case MSP_MOTOR_PINS:
 		s_struct((uint8_t*) &PWM_PIN, 8);
 		break;
-	case 208:
+	case MSP_RESET_CONF:
 		if (!f.ARMED)
 			LoadDefaults();
 		mspAck();
 		break;
-	case 205:
+	case MSP_ACC_CALIBRATION:
 		if (!f.ARMED)
 			calibratingA = 512;
 		mspAck();
 		break;
-	case 206:
+	case MSP_MAG_CALIBRATION:
 		if (!f.ARMED)
 			f.CALIBRATE_MAG = 1;
 		mspAck();
 		break;
-	case 250:
+	case MSP_EEPROM_WRITE:
 		writeParams(0);
 		mspAck();
 		break;
-	case 254:
+	case MSP_DEBUG:
 		s_struct((uint8_t*) &debug, 8);
 		break;
-	default:
+	default:  // we do not know how to handle the (valid) message, indicate error MSP $M!
 		headSerialError();
 		tailSerialReply();
 		break;

@@ -7,6 +7,8 @@
 #include "MultiWii.h"
 #include "Alarms.h"
 
+//crinyhere
+
 /** Global RX related variables **/
 volatile uint16_t rcValue[12] = { 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502 };
 static uint8_t rcChannel[12] = { ROLL, PITCH, THROTTLE, YAW, AUX1, AUX2, AUX3, AUX4, 8, 9, 10, 11 };
