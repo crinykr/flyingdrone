@@ -7,8 +7,6 @@
 #include "MultiWii.h"
 #include "Alarms.h"
 
-//crinyhere
-
 /** Global RX related variables **/
 //RAW RC values will be store here
 volatile uint16_t rcValue[RC_CHANS] = { 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502, 1502 }; // interval [1000;2000]
