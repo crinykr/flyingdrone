@@ -234,12 +234,10 @@ void annexCode()
 		if (f.ACC_CALIBRATED)
 		{
 			LEDPIN_OFF
-			;
 		}
 		if (f.ARMED)
 		{
 			LEDPIN_ON
-			;
 		}
 	}
 
@@ -250,7 +248,6 @@ void annexCode()
 			// the multi uses ACC and is not calibrated or is too much inclinated
 			f.ACC_CALIBRATED = 0;
 			LEDPIN_TOGGLE
-			;
 			calibratedAccTime = currentTime + 100000;
 		}
 		else
@@ -265,12 +262,7 @@ void setup()
 {
 	SerialOpen(0, SERIAL0_COM_SPEED);
 	LEDPIN_PINMODE
-	;
-	POWERPIN_PINMODE;
 	BUZZERPIN_PINMODE
-	;
-	STABLEPIN_PINMODE;
-	POWERPIN_OFF;
 	initOutput();
 	readGlobalSet();
 	global_conf.currentSet = 0;
