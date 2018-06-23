@@ -3,42 +3,42 @@
 
 enum rc
 {
-	ROLL,
-	PITCH,
-	YAW,
-	THROTTLE,
-	AUX1,
-	AUX2,
-	AUX3,
-	AUX4,
-	AUX5,
-	AUX6,
-	AUX7,
+	ROLL, //
+	PITCH, //
+	YAW, //
+	THROTTLE, //
+	AUX1, //
+	AUX2, //
+	AUX3, //
+	AUX4, //
+	AUX5, //
+	AUX6, //
+	AUX7, //
 	AUX8
 };
 
 enum pid
 {
-	PIDROLL,
-	PIDPITCH,
-	PIDYAW,
-	PIDALT,
-	PIDPOS,
-	PIDPOSR,
-	PIDNAVR,
-	PIDLEVEL,
-	PIDMAG,
+	PIDROLL, //
+	PIDPITCH, //
+	PIDYAW, //
+	PIDALT, //
+	PIDPOS, //
+	PIDPOSR, //
+	PIDNAVR, //
+	PIDLEVEL, //
+	PIDMAG, //
 	PIDVEL, // not used currently
 	PIDITEMS
 };
 
 enum box
 {
-	BOXARM,
-	BOXANGLE,
-	BOXHORIZON,
-	BOXBARO,
-	BOXMAG,
+	BOXARM, //
+	BOXANGLE, //
+	BOXHORIZON, //
+	BOXBARO, //
+	BOXMAG, //
 	CHECKBOXITEMS
 };
 

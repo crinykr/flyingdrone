@@ -25,7 +25,8 @@ void writeMotors() // [1000;2000] => [125;250]
 /** Writes the mincommand to all Motors **/
 void writeAllMotors(int16_t mc)
 { // Sends commands to all motors
-	for (uint8_t i = 0; i < NUMBER_MOTOR; i++) {
+	for (uint8_t i = 0; i < NUMBER_MOTOR; i++)
+	{
 		motor[i] = mc;
 	}
 	writeMotors();
@@ -35,7 +36,8 @@ void writeAllMotors(int16_t mc)
 void initOutput()
 {
 	/** mark all PWM pins as Output **/
-	for (uint8_t i = 0; i < NUMBER_MOTOR; i++) {
+	for (uint8_t i = 0; i < NUMBER_MOTOR; i++)
+	{
 		pinMode(PWM_PIN[i], OUTPUT);
 	}
 
@@ -73,7 +75,8 @@ void mixTable()
 	for (i = 1; i < NUMBER_MOTOR; i++)
 		if (motor[i] > maxMotor)
 			maxMotor = motor[i];
-	for (i = 0; i < NUMBER_MOTOR; i++) {
+	for (i = 0; i < NUMBER_MOTOR; i++)
+	{
 		if (maxMotor > MAXTHROTTLE) // this is a way to still have good gyro corrections if at least one motor reaches its max.
 			motor[i] -= maxMotor - MAXTHROTTLE;
 		motor[i] = constrain(motor[i], conf.minthrottle, MAXTHROTTLE);

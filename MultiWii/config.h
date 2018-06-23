@@ -8,7 +8,7 @@
 #define MAXTHROTTLE 1850
 
 /** Mincommand **/
-#define MINCOMMAND  1000
+#define MINCOMMAND 1000
 
 /** constant loop time **/
 #define LOOP_TIME 2800
@@ -27,17 +27,17 @@
 #define SERIAL0_COM_SPEED 115200
 
 /** Failsafe settings **/
-#define FAILSAFE_DELAY            10                  // Guard time for failsafe activation after signal lost. 1 step = 0.1sec - 1sec in example
+#define FAILSAFE_DELAY 10 // Guard time for failsafe activation after signal lost. 1 step = 0.1sec - 1sec in example
 
 /** GPS **/
-#define MAG_DECLINATION         4.02f
+#define MAG_DECLINATION 4.02f
 
 /** battery voltage monitoring **/
-#define VBATNOMINAL       126 // 12,6V full battery nominal voltage - only used for lcd.telemetry
-#define VBAT_CELLS_NUM     0 // set this to the number of cells you monitor via analog pins
+#define VBATNOMINAL    126 // 12,6V full battery nominal voltage - only used for lcd.telemetry
+#define VBAT_CELLS_NUM 0 // set this to the number of cells you monitor via analog pins
 
 /** altitude hold **/
-#define ALT_HOLD_THROTTLE_NEUTRAL_ZONE    50
+#define ALT_HOLD_THROTTLE_NEUTRAL_ZONE 50
 
 /** motor, servo and other presets **/
 #define MIDRC 1500

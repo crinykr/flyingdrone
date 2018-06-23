@@ -7,19 +7,19 @@
 #define NUMBER_MOTOR 4
 
 /** atmega328P (Promini) **/
-#define LEDPIN_PINMODE             pinMode (13, OUTPUT);
-#define LEDPIN_TOGGLE              PINB |= 1<<5; // switch LEDPIN state (digital PIN 13)
-#define LEDPIN_OFF                 PORTB &= ~(1<<5);
-#define LEDPIN_ON                  PORTB |= (1<<5);
+#define LEDPIN_PINMODE pinMode (13, OUTPUT);
+#define LEDPIN_TOGGLE  PINB |= 1<<5; // switch LEDPIN state (digital PIN 13)
+#define LEDPIN_OFF     PORTB &= ~(1<<5);
+#define LEDPIN_ON      PORTB |= (1<<5);
 
-#define BUZZERPIN_PINMODE          pinMode (8, OUTPUT);
-#define BUZZERPIN_ON               PORTB |= 1;
-#define BUZZERPIN_OFF              PORTB &= ~1;
+#define BUZZERPIN_PINMODE pinMode (8, OUTPUT);
+#define BUZZERPIN_ON      PORTB |= 1;
+#define BUZZERPIN_OFF     PORTB &= ~1;
 
-#define I2C_PULLUPS_ENABLE         PORTC |= 1<<4; PORTC |= 1<<5; // PIN A4&A5 (SDA&SCL)
-#define I2C_PULLUPS_DISABLE        PORTC &= ~(1<<4); PORTC &= ~(1<<5);
+#define I2C_PULLUPS_ENABLE  PORTC |= 1<<4; PORTC |= 1<<5; // PIN A4&A5 (SDA&SCL)
+#define I2C_PULLUPS_DISABLE PORTC &= ~(1<<4); PORTC &= ~(1<<5);
 
-#define PPM_PIN_INTERRUPT          attachInterrupt(0, rxInt, RISING); // PIN 0
+#define PPM_PIN_INTERRUPT attachInterrupt(0, rxInt, RISING); // PIN 0
 //RX PIN assignment inside the port //for PORTD
 
 /** GY86 - IMU Orientations and Sensor definitions **/
@@ -44,7 +44,7 @@
 #define MULTITYPE 3
 
 /** Some unsorted "chain" defines **/
-#define BIND_CAPABLE 0  // Used for Spektrum today; can be used in the future for any RX type that needs a bind and has a MultiWii module.
+#define BIND_CAPABLE 0 // Used for Spektrum today; can be used in the future for any RX type that needs a bind and has a MultiWii module.
 #define RC_CHANS 12
 
 #endif /* DEF_H_ */

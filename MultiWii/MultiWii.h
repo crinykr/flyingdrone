@@ -1,8 +1,8 @@
 #ifndef MULTIWII_H_
 #define MULTIWII_H_
 
-#define  VERSION        240
-#define  NAVI_VERSION   7     //This allow sync with GUI
+#define  VERSION      240
+#define  NAVI_VERSION 7 //This allow sync with GUI
 #include "types.h"
 #include "Alarms.h"
 
@@ -66,20 +66,20 @@ extern int16_t lookupPitchRollRC[5];
 extern uint16_t lookupThrottleRC[11];
 
 // default POSHOLD control gains
-#define POSHOLD_P              .15
-#define POSHOLD_I              0.0
-#define POSHOLD_IMAX           20        // degrees
+#define POSHOLD_P    .15
+#define POSHOLD_I    0.0
+#define POSHOLD_IMAX 20 // degrees
 
-#define POSHOLD_RATE_P         3.4
-#define POSHOLD_RATE_I         0.14      // Wind control
-#define POSHOLD_RATE_D         0.053     // try 2 or 3 for POSHOLD_RATE 1
-#define POSHOLD_RATE_IMAX      20        // degrees
+#define POSHOLD_RATE_P    3.4
+#define POSHOLD_RATE_I    0.14 // Wind control
+#define POSHOLD_RATE_D    0.053 // try 2 or 3 for POSHOLD_RATE 1
+#define POSHOLD_RATE_IMAX 20 // degrees
 
 // default Navigation PID gains
-#define NAV_P                  2.5
-#define NAV_I                  0.33      // Wind control
-#define NAV_D                  0.083      //
-#define NAV_IMAX               20        // degrees
+#define NAV_P    2.5
+#define NAV_I    0.33 // Wind control
+#define NAV_D    0.083
+#define NAV_IMAX 20 // degrees
 
 // *************************************** end GPS common variables and defines ******************************************************************
 

@@ -191,16 +191,19 @@ void annexCode()
 	// PITCH & ROLL only dynamic PID adjustemnt,  depending on throttle value (or collective.pitch value for heli)
 #define DYN_THR_PID_CHANNEL THROTTLE
 	prop2 = 128; // prop2 was 100, is 128 now
-	if (rcData[DYN_THR_PID_CHANNEL] > 1500) { // breakpoint is fix: 1500
+	if (rcData[DYN_THR_PID_CHANNEL] > 1500)
+	{ // breakpoint is fix: 1500
 		if (rcData[DYN_THR_PID_CHANNEL] < 2000)
 			prop2 -= ((uint16_t) conf.dynThrPID * (rcData[DYN_THR_PID_CHANNEL] - 1500) >> 9); //  /512 instead of /500
 		else
 			prop2 -= conf.dynThrPID;
 	}
 
-	for (axis = 0; axis < 3; axis++) {
+	for (axis = 0; axis < 3; axis++)
+	{
 		tmp = min(abs(rcData[axis] - MIDRC), 500);
-		if (axis != 2) { //ROLL & PITCH
+		if (axis != 2)
+		{ //ROLL & PITCH
 			tmp2 = tmp >> 7; // 500/128 = 3.9  => range [0;3]
 			rcCommand[axis] = lookupPitchRollRC[tmp2] + ((tmp - (tmp2 << 7)) * (lookupPitchRollRC[tmp2 + 1] - lookupPitchRollRC[tmp2]) >> 7);
 			prop1 = 128 - ((uint16_t) conf.rollPitchRate * tmp >> 9); // prop1 was 100, is 128 now -- and /512 instead of /500
@@ -208,7 +211,8 @@ void annexCode()
 			dynP8[axis] = (uint16_t) conf.pid[axis].P8 * prop1 >> 7; // was /100, is /128 now
 			dynD8[axis] = (uint16_t) conf.pid[axis].D8 * prop1 >> 7; // was /100, is /128 now
 		}
-		else {
+		else
+		{
 			// YAW
 			rcCommand[axis] = tmp;
 		}
@@ -220,27 +224,34 @@ void annexCode()
 	tmp2 = tmp / 256; // range [0;9]
 	rcCommand[THROTTLE] = lookupThrottleRC[tmp2] + (tmp - tmp2 * 256) * (lookupThrottleRC[tmp2 + 1] - lookupThrottleRC[tmp2]) / 256; // [0;2559] -> expo -> [conf.minthrottle;MAXTHROTTLE]
 
-	if ((calibratingA > 0 && ACC) || (calibratingG > 0)) { // Calibration phasis
+	if ((calibratingA > 0 && ACC) || (calibratingG > 0))
+	{ // Calibration phasis
 		LEDPIN_TOGGLE
 		;
 	}
-	else {
-		if (f.ACC_CALIBRATED) {
+	else
+	{
+		if (f.ACC_CALIBRATED)
+		{
 			LEDPIN_OFF
 		}
-		if (f.ARMED) {
+		if (f.ARMED)
+		{
 			LEDPIN_ON
 		}
 	}
 
-	if (currentTime > calibratedAccTime) {
-		if (!f.SMALL_ANGLES_25) {
+	if (currentTime > calibratedAccTime)
+	{
+		if (!f.SMALL_ANGLES_25)
+		{
 			// the multi uses ACC and is not calibrated or is too much inclinated
 			f.ACC_CALIBRATED = 0;
 			LEDPIN_TOGGLE
 			calibratedAccTime = currentTime + 100000;
 		}
-		else {
+		else
+		{
 			f.ACC_CALIBRATED = 1;
 		}
 	}
@@ -255,7 +266,8 @@ void setup()
 	initOutput();
 	readGlobalSet();
 	global_conf.currentSet = 0;
-	while (1) { // check settings integrity
+	while (1)
+	{ // check settings integrity
 		readEEPROM(); // check current setting integrity
 		if (global_conf.currentSet == 0)
 			break; // all checks is done
@@ -274,13 +286,16 @@ void setup()
 
 void go_arm()
 {
-	if (calibratingG == 0 && f.ACC_CALIBRATED) {
-		if (!f.ARMED && !f.BARO_MODE) { // arm now!
+	if (calibratingG == 0 && f.ACC_CALIBRATED)
+	{
+		if (!f.ARMED && !f.BARO_MODE)
+		{ // arm now!
 			f.ARMED = 1;
 			magHold = att.heading;
 		}
 	}
-	else if (!f.ARMED) {
+	else if (!f.ARMED)
+	{
 		blinkLED(2, 255, 1);
 		SET_ALARM(ALRM_FAC_ACC, ALRM_LVL_ON);
 	}
@@ -311,21 +326,24 @@ void loop()
 	int16_t rc;
 	int32_t prop = 0;
 
-	if ((int16_t)(currentTime - rcTime) > 0) { // 50Hz
+	if ((int16_t)(currentTime - rcTime) > 0)
+	{ // 50Hz
 		rcTime = currentTime + 20000;
 		computeRC();
 
 		// ------------------ STICKS COMMAND HANDLER --------------------
 		// checking sticks positions
 		uint8_t stTmp = 0;
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++)
+		{
 			stTmp >>= 2;
 			if (rcData[i] > MINCHECK)
 				stTmp |= 0x80; // check for MIN
 			if (rcData[i] < MAXCHECK)
 				stTmp |= 0x40; // check for MAX
 		}
-		if (stTmp == rcSticks) {
+		if (stTmp == rcSticks)
+		{
 			if (rcDelayCommand < 250)
 				rcDelayCommand++;
 		}
@@ -334,60 +352,75 @@ void loop()
 		rcSticks = stTmp;
 
 		// perform actions
-		if (rcData[THROTTLE] <= MINCHECK) { // THROTTLE at minimum
+		if (rcData[THROTTLE] <= MINCHECK)
+		{ // THROTTLE at minimum
 			errorGyroI[ROLL] = 0;
 			errorGyroI[PITCH] = 0;
 			errorGyroI_YAW = 0;
 			errorAngleI[ROLL] = 0;
 			errorAngleI[PITCH] = 0;
-			if (conf.activate[BOXARM] > 0) { // Arming/Disarming via ARM BOX
+			if (conf.activate[BOXARM] > 0)
+			{ // Arming/Disarming via ARM BOX
 				if (rcOptions[BOXARM] && f.OK_TO_ARM)
 					go_arm();
 				else if (f.ARMED)
 					go_disarm();
 			}
 		}
-		if (rcDelayCommand == 20) {
-			if (f.ARMED) { // actions during armed
+		if (rcDelayCommand == 20)
+		{
+			if (f.ARMED)
+			{ // actions during armed
 				if (conf.activate[BOXARM] == 0 && rcSticks == THR_LO + YAW_LO + PIT_CE + ROL_CE)
 					go_disarm(); // Disarm via YAW
 			}
-			else { // actions during not armed
+			else
+			{ // actions during not armed
 				i = 0;
-				if (rcSticks == THR_LO + YAW_LO + PIT_LO + ROL_CE) { // GYRO calibration
+				if (rcSticks == THR_LO + YAW_LO + PIT_LO + ROL_CE)
+				{ // GYRO calibration
 					calibratingG = 512;
 					calibratingB = 10; // calibrate baro to new ground level (10 * 25 ms = ~250 ms non blocking)
 				}
-				if (rcSticks == THR_LO + YAW_HI + PIT_HI + ROL_CE) { // Enter LCD config
+				if (rcSticks == THR_LO + YAW_HI + PIT_HI + ROL_CE)
+				{ // Enter LCD config
 					previousTime = micros();
 				}
-				else if (conf.activate[BOXARM] == 0 && rcSticks == THR_LO + YAW_HI + PIT_CE + ROL_CE) { // Arm via YAW
+				else if (conf.activate[BOXARM] == 0 && rcSticks == THR_LO + YAW_HI + PIT_CE + ROL_CE)
+				{ // Arm via YAW
 					go_arm();
 				}
-				else if (rcSticks == THR_HI + YAW_LO + PIT_LO + ROL_CE) {
+				else if (rcSticks == THR_HI + YAW_LO + PIT_LO + ROL_CE)
+				{
 					calibratingA = 512;     // throttle=max, yaw=left, pitch=min
 				}
-				else if (rcSticks == THR_HI + YAW_HI + PIT_LO + ROL_CE) {
+				else if (rcSticks == THR_HI + YAW_HI + PIT_LO + ROL_CE)
+				{
 					f.CALIBRATE_MAG = 1;  // throttle=max, yaw=right, pitch=min
 				}
 				i = 0;
-				if (rcSticks == THR_HI + YAW_CE + PIT_HI + ROL_CE) {
+				if (rcSticks == THR_HI + YAW_CE + PIT_HI + ROL_CE)
+				{
 					conf.angleTrim[PITCH] += 2;
 					i = 1;
 				}
-				else if (rcSticks == THR_HI + YAW_CE + PIT_LO + ROL_CE) {
+				else if (rcSticks == THR_HI + YAW_CE + PIT_LO + ROL_CE)
+				{
 					conf.angleTrim[PITCH] -= 2;
 					i = 1;
 				}
-				else if (rcSticks == THR_HI + YAW_CE + PIT_CE + ROL_HI) {
+				else if (rcSticks == THR_HI + YAW_CE + PIT_CE + ROL_HI)
+				{
 					conf.angleTrim[ROLL] += 2;
 					i = 1;
 				}
-				else if (rcSticks == THR_HI + YAW_CE + PIT_CE + ROL_LO) {
+				else if (rcSticks == THR_HI + YAW_CE + PIT_CE + ROL_LO)
+				{
 					conf.angleTrim[ROLL] -= 2;
 					i = 1;
 				}
-				if (i) {
+				if (i)
+				{
 					writeParams(1);
 					rcDelayCommand = 0; // allow autorepetition
 				}
@@ -402,31 +435,39 @@ void loop()
 			rcOptions[i] = (auxState & conf.activate[i]) > 0;
 
 		// note: if FAILSAFE is disable, failsafeCnt > 5*FAILSAFE_DELAY is always false
-		if (rcOptions[BOXANGLE] || (failsafeCnt > 5 * FAILSAFE_DELAY)) {
+		if (rcOptions[BOXANGLE] || (failsafeCnt > 5 * FAILSAFE_DELAY))
+		{
 			// bumpless transfer to Level mode
-			if (!f.ANGLE_MODE) {
+			if (!f.ANGLE_MODE)
+			{
 				errorAngleI[ROLL] = 0;
 				errorAngleI[PITCH] = 0;
 				f.ANGLE_MODE = 1;
 			}
 		}
-		else {
-			if (f.ANGLE_MODE) {
+		else
+		{
+			if (f.ANGLE_MODE)
+			{
 				errorGyroI[ROLL] = 0;
 				errorGyroI[PITCH] = 0;
 			}
 			f.ANGLE_MODE = 0;
 		}
-		if (rcOptions[BOXHORIZON]) {
+		if (rcOptions[BOXHORIZON])
+		{
 			f.ANGLE_MODE = 0;
-			if (!f.HORIZON_MODE) {
+			if (!f.HORIZON_MODE)
+			{
 				errorAngleI[ROLL] = 0;
 				errorAngleI[PITCH] = 0;
 				f.HORIZON_MODE = 1;
 			}
 		}
-		else {
-			if (f.HORIZON_MODE) {
+		else
+		{
+			if (f.HORIZON_MODE)
+			{
 				errorGyroI[ROLL] = 0;
 				errorGyroI[PITCH] = 0;
 			}
@@ -436,8 +477,10 @@ void loop()
 		if (rcOptions[BOXARM] == 0)
 			f.OK_TO_ARM = 1;
 
-		if (rcOptions[BOXBARO]) {
-			if (!f.BARO_MODE) {
+		if (rcOptions[BOXBARO])
+		{
+			if (!f.BARO_MODE)
+			{
 				f.BARO_MODE = 1;
 				AltHold = alt.EstAlt;
 				initialThrottleHold = rcCommand[THROTTLE];
@@ -445,20 +488,25 @@ void loop()
 				BaroPID = 0;
 			}
 		}
-		else {
+		else
+		{
 			f.BARO_MODE = 0;
 		}
-		if (rcOptions[BOXMAG]) {
-			if (!f.MAG_MODE) {
+		if (rcOptions[BOXMAG])
+		{
+			if (!f.MAG_MODE)
+			{
 				f.MAG_MODE = 1;
 				magHold = att.heading;
 			}
 		}
-		else {
+		else
+		{
 			f.MAG_MODE = 0;
 		}
 	}
-	else { // not in rc loop
+	else
+	{ // not in rc loop
 		static uint8_t taskOrder = 0; // never call all functions in the same loop, to avoid high delay spikes
 		switch (taskOrder)
 		{
@@ -482,7 +530,8 @@ void loop()
 		}
 	}
 
-	while (1) {
+	while (1)
+	{
 		currentTime = micros();
 		cycleTime = currentTime - previousTime;
 		if (cycleTime >= LOOP_TIME)
@@ -495,7 +544,8 @@ void loop()
 	//***********************************
 	// THROTTLE sticks during mission and RTH
 	//***********************************
-	if (abs(rcCommand[YAW]) < 70 && f.MAG_MODE) {
+	if (abs(rcCommand[YAW]) < 70 && f.MAG_MODE)
+	{
 		int16_t dif = att.heading - magHold;
 		if (dif <= -180)
 			dif += 360;
@@ -510,21 +560,25 @@ void loop()
 	/* Smooth alt change routine , for slow auto and aerophoto modes (in general solution from alexmos). It's slowly increase/decrease
 	 * altitude proportional to stick movement (+/-100 throttle gives about +/-50 cm in 1 second with cycle time about 3-4ms)
 	 */
-	if (f.BARO_MODE) {
+	if (f.BARO_MODE)
+	{
 		static uint8_t isAltHoldChanged = 0;
 		static int16_t AltHoldCorr = 0;
 
 		//IF Throttle not ignored then allow change altitude with the stick....
-		if ((abs(rcCommand[THROTTLE] - initialThrottleHold) > ALT_HOLD_THROTTLE_NEUTRAL_ZONE) && !f.THROTTLE_IGNORED) {
+		if ((abs(rcCommand[THROTTLE] - initialThrottleHold) > ALT_HOLD_THROTTLE_NEUTRAL_ZONE) && !f.THROTTLE_IGNORED)
+		{
 			// Slowly increase/decrease AltHold proportional to stick movement ( +100 throttle gives ~ +50 cm in 1 second with cycle time about 3-4ms)
 			AltHoldCorr += rcCommand[THROTTLE] - initialThrottleHold;
-			if (abs(AltHoldCorr) > 512) {
+			if (abs(AltHoldCorr) > 512)
+			{
 				AltHold += AltHoldCorr / 512;
 				AltHoldCorr %= 512;
 			}
 			isAltHoldChanged = 1;
 		}
-		else if (isAltHoldChanged) {
+		else if (isAltHoldChanged)
+		{
 			AltHold = alt.EstAlt;
 			isAltHoldChanged = 0;
 		}
@@ -536,7 +590,8 @@ void loop()
 		prop = min(max(abs(rcCommand[PITCH]), abs(rcCommand[ROLL])), 512);
 
 	// PITCH & ROLL
-	for (axis = 0; axis < 2; axis++) {
+	for (axis = 0; axis < 2; axis++)
+	{
 		rc = rcCommand[axis] << 1;
 		error = rc - imu.gyroData[axis];
 		errorGyroI[axis] = constrain(errorGyroI[axis] + error, -16000, +16000);       // WindUp   16 bits is ok here
@@ -547,8 +602,9 @@ void loop()
 
 		PTerm = mul(rc, conf.pid[axis].P8) >> 6;
 
-		if (f.ANGLE_MODE || f.HORIZON_MODE) { // axis relying on ACC
-											  // 50 degrees max inclination
+		if (f.ANGLE_MODE || f.HORIZON_MODE)
+		{ // axis relying on ACC
+		  // 50 degrees max inclination
 			errorAngle = constrain(rc + GPS_angle[axis], -500, +500) - att.angle[axis] + conf.angleTrim[axis]; //16 bits is ok here
 			errorAngleI[axis] = constrain(errorAngleI[axis] + errorAngle, -10000, +10000);                                                // WindUp     //16 bits is ok here
 
